@@ -6,6 +6,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import random
 import time
+import sqlite3
+import uuid
+import datetime
 
 def get_random_option(select_element):
   options_with_value = [option.text for option in select_element.options if option.get_attribute("value")]
@@ -17,13 +20,34 @@ def get_random_option(select_element):
   else:
     return None
 
-
 def get_selected_text(select_element):
     return select_element.first_selected_option.text
 
 def wait_and_click(element, timeout=10):
     time.sleep(timeout)
     element.click()
+
+
+def executeQueryDatabase(data, cursor, conexao):
+  newId = str(uuid.uuid4())
+  carName = ' '.join([data['marca'], data['modelo'], data['ano_modelo']])
+  clearPrice = data['preço_médio'].replace('R$ ', '').replace('.', '').replace(',', '.')
+  timestamp = datetime.datetime.now()
+
+  # Convertendo para float
+  clearPrice = float(clearPrice)
+
+  cursor.execute('''INSERT INTO vehicles (id, name, fipe_code, price, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)''', (newId, carName, data['código_fipe'], clearPrice, timestamp, timestamp))
+
+  # Confirma as alterações
+  conexao.commit()
+
+
+# Estabelece a conexão com o banco de dados (o arquivo db.sqlite3 será criado no diretório atual se não existir)
+conexao = sqlite3.connect('/home/matheus/Development/bye-car-tech-test/fipe-table-system-manager/database/database.sqlite')
+
+# Cria um objeto cursor
+cursor = conexao.cursor()
 
 # Abrir o site
 service = Service(executable_path="chromedriver")
@@ -37,7 +61,6 @@ link = driver.find_element(By.CSS_SELECTOR, '[data-label="carro"]')
 link.click()
 
 for _ in range(10):
-
   # Selecionar marca aleatória
   select_brand_element = driver.find_element(By.ID, 'selectMarcacarro')
   select_brand = Select(select_brand_element)
@@ -64,11 +87,13 @@ for _ in range(10):
   info_dict = {}
 
   for tr in driver.find_elements(By.XPATH, '//table[@width="100%"]/tbody/tr'):
-      key = tr.find_element(By.XPATH, './/td[1]').text.strip().lower().replace(' ', '_')
-      value = tr.find_element(By.XPATH, './/td[2]').text.strip()
-      info_dict[key] = value
+    key = tr.find_element(By.XPATH, './/td[1]').text.strip().lower().replace(' ', '_').strip(':')
+    value = tr.find_element(By.XPATH, './/td[2]').text.strip()
+    info_dict[key] = value
+  
+  executeQueryDatabase(info_dict, cursor, conexao)
 
-  print(info_dict)
+conexao.close()
 
 # Aguardar antes de fechar o navegador
 driver.quit()
