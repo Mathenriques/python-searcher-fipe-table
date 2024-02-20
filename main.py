@@ -27,15 +27,13 @@ def wait_and_click(element, timeout=10):
     time.sleep(timeout)
     element.click()
 
-
 def executeQueryDatabase(data, cursor, conexao):
   newId = str(uuid.uuid4())
   carName = ' '.join([data['marca'], data['modelo'], data['ano_modelo']])
   clearPrice = data['preço_médio'].replace('R$ ', '').replace('.', '').replace(',', '.')
-  timestamp = datetime.datetime.now()
-
-  # Convertendo para float
   clearPrice = float(clearPrice)
+
+  timestamp = datetime.datetime.now()
 
   cursor.execute('''INSERT INTO vehicles (id, name, fipe_code, price, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)''', (newId, carName, data['código_fipe'], clearPrice, timestamp, timestamp))
 
