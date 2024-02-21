@@ -42,7 +42,8 @@ def executeQueryDatabase(data, cursor, conexao):
 
 
 # Estabelece a conexão com o banco de dados (o arquivo db.sqlite3 será criado no diretório atual se não existir)
-conexao = sqlite3.connect('/home/matheus/Development/bye-car-tech-test/fipe-table-system-manager/database/database.sqlite')
+# Coloque ali dentro o caminho até o arquivo do banco sqlite
+conexao = sqlite3.connect('')
 
 # Cria um objeto cursor
 cursor = conexao.cursor()
